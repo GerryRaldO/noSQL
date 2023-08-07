@@ -28,6 +28,11 @@ module.exports = {
         try {
             const thought = await Thought.create(req.body);
             res.json(thought);
+
+            const user = await User.findOneAndUpdate(
+                {_id: req.body.userId},
+                {$push: {thoughts:thought._id}}
+            )
         } catch (err) {
             console.log(err);
             return res.status(500).json(err);
@@ -67,9 +72,10 @@ module.exports = {
 
     async addReaction(req, res) {
         try {
-            const thought = await Thought.findByIdAndUpdate (
+            console.log('AddReaction')
+            const thought = await Thought.findOneAndUpdate (
                 { _id: req.params.thoughtId },
-                { $addToSet: { reaction: req.body } },
+                { $addToSet: { reactions: req.body } },
                 { runValidators: true, new: true }
             );
             if (!thought) {
@@ -81,11 +87,11 @@ module.exports = {
         }
     },
 
-    async removeReaction(res, req) {
+    async removeReaction(req, res) {
         try {
-            const thought = await Thought.findByIdAndUpdate (
+            const thought = await Thought.findOneAndUpdate (
                 { _id: req.params.thoughtId },
-                { $addToSet: { reaction: req.body } },
+                { $pull: { reactions: {reactionId: req.params.reactionId} } },
                 { runValidators: true, new: true }
             );
 
